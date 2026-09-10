@@ -49,6 +49,7 @@ export interface ProductFormData {
   card_badge: string;
   card_description: string;
   card_image_url: string;
+  gallery_images: string[];
   card_specs: KeyValueSpec[];
   modal_title: string;
   modal_tagline: string;
@@ -136,6 +137,7 @@ export default function ProductForm({ initialData, isEdit = false }: ProductForm
     card_badge: initialData?.card_badge || '',
     card_description: initialData?.card_description || '',
     card_image_url: initialData?.card_image_url || '',
+    gallery_images: normalizeStringArray(initialData?.gallery_images),
     card_specs: initialData?.card_specs ? normalizeSpecs(initialData.card_specs) : [
       { label: 'Capacity', param: 'Capacity', value: '500L – 10,000L' },
       { label: 'Material', param: 'Material', value: 'Duplex 2205 / SS316L' },
@@ -174,6 +176,8 @@ export default function ProductForm({ initialData, isEdit = false }: ProductForm
   const [allProducts, setAllProducts] = useState<{ id: string; slug: string }[]>([]);
   const [loadingData, setLoadingData] = useState(true);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [uploadingGallery, setUploadingGallery] = useState(false);
+  const [galleryUrlInput, setGalleryUrlInput] = useState('');
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [globalError, setGlobalError] = useState<string | null>(null);
@@ -324,6 +328,73 @@ export default function ProductForm({ initialData, isEdit = false }: ProductForm
     } finally {
       setUploadingImage(false);
     }
+  };
+
+  // Multi-Image Gallery Handlers
+  const handleGalleryUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setUploadingGallery(true);
+    setUploadError(null);
+
+    const uploadedUrls: string[] = [];
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+        setUploadError('Only JPEG, PNG, and WebP images are allowed.');
+        continue;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        setUploadError('Images must be smaller than 5MB.');
+        continue;
+      }
+
+      try {
+        const form = new FormData();
+        form.append('file', file);
+        form.append('bucket', 'product-images');
+
+        const res = await fetch('/api/proxy/upload?bucket=product-images', {
+          method: 'POST',
+          body: form,
+        });
+
+        const data = await res.json();
+        if (res.ok && data.data?.publicUrl) {
+          uploadedUrls.push(data.data.publicUrl);
+        }
+      } catch (err) {
+        console.error('Gallery image upload failed for', file.name, err);
+      }
+    }
+
+    if (uploadedUrls.length > 0) {
+      setFormData((prev) => ({
+        ...prev,
+        gallery_images: [...prev.gallery_images, ...uploadedUrls],
+      }));
+    }
+    setUploadingGallery(false);
+    e.target.value = '';
+  };
+
+  const handleAddGalleryUrl = () => {
+    const url = galleryUrlInput.trim();
+    if (!url) return;
+    setFormData((prev) => ({
+      ...prev,
+      gallery_images: [...prev.gallery_images, url],
+    }));
+    setGalleryUrlInput('');
+  };
+
+  const handleRemoveGalleryImage = (index: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      gallery_images: prev.gallery_images.filter((_, i) => i !== index),
+    }));
   };
 
   // Structured Array Helpers
@@ -492,6 +563,7 @@ export default function ProductForm({ initialData, isEdit = false }: ProductForm
         features: formData.features
           .map((f) => ({ title: f.title.trim(), desc: f.desc.trim() }))
           .filter((f) => f.title || f.desc),
+        gallery_images: formData.gallery_images.map((g) => g.trim()).filter(Boolean),
         materials: formData.materials.map((m) => m.trim()).filter(Boolean),
         capacities: formData.capacities.map((c) => c.trim()).filter(Boolean),
         applications: formData.applications.map((a) => a.trim()).filter(Boolean),
@@ -831,6 +903,102 @@ export default function ProductForm({ initialData, isEdit = false }: ProductForm
           {uploadError && <p className="text-xs text-red-400 mt-2">{uploadError}</p>}
           {errors.card_image_url && (
             <p className="text-xs text-red-400 mt-2">{errors.card_image_url}</p>
+          )}
+        </div>
+
+        {/* Product Multi-Image Gallery */}
+        <div className="p-4 rounded-xl bg-black/40 border border-neutral-800/80 space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="flex items-center gap-2">
+                <label className="text-xs font-semibold text-neutral-200 uppercase tracking-wider">
+                  Multi-Image Gallery (Angle Views)
+                </label>
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#2d6a35]/20 text-emerald-400 font-mono">
+                  {formData.gallery_images.length} {formData.gallery_images.length === 1 ? 'Angle' : 'Angles'}
+                </span>
+              </div>
+              <p className="text-[11px] text-neutral-400 mt-0.5">
+                Upload multiple angle photos or cutaways. The frontend product modal displays an interactive thumbnail switcher.
+              </p>
+            </div>
+          </div>
+
+          {/* Upload and URL input row */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+            <label className={`flex items-center justify-center gap-2 px-4 py-2 bg-neutral-900 hover:bg-neutral-800 border border-neutral-700 text-xs font-medium text-white rounded-lg cursor-pointer transition ${uploadingGallery ? 'opacity-60 cursor-not-allowed' : ''}`}>
+              {uploadingGallery ? (
+                <Loader2 className="w-4 h-4 animate-spin text-emerald-400" />
+              ) : (
+                <Upload className="w-4 h-4 text-emerald-400" />
+              )}
+              <span>{uploadingGallery ? 'Uploading Angles...' : 'Upload Angle Images'}</span>
+              <input
+                type="file"
+                multiple
+                accept="image/jpeg,image/png,image/webp"
+                onChange={handleGalleryUpload}
+                disabled={uploadingGallery}
+                className="hidden"
+              />
+            </label>
+
+            <div className="flex-1 flex items-center gap-2">
+              <input
+                type="text"
+                placeholder="Or paste image URL (e.g. /tank-1.png or https://...)"
+                value={galleryUrlInput}
+                onChange={(e) => setGalleryUrlInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleAddGalleryUrl();
+                  }
+                }}
+                className="flex-1 px-3 py-2 bg-neutral-900 border border-neutral-800 rounded-lg text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-[#2d6a35]"
+              />
+              <button
+                type="button"
+                onClick={handleAddGalleryUrl}
+                disabled={!galleryUrlInput.trim()}
+                className="px-3 py-2 bg-[#2d6a35] hover:bg-[#24572b] disabled:opacity-50 text-white rounded-lg text-xs font-medium transition shrink-0"
+              >
+                Add Angle
+              </button>
+            </div>
+          </div>
+
+          {/* Gallery Thumbnails Grid */}
+          {formData.gallery_images.length > 0 ? (
+            <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-3 pt-2">
+              {formData.gallery_images.map((imgUrl, gIdx) => (
+                <div
+                  key={gIdx}
+                  className="relative group rounded-lg overflow-hidden border border-neutral-800 bg-neutral-950 aspect-square flex items-center justify-center p-2"
+                >
+                  <img
+                    src={imgUrl}
+                    alt={`Angle ${gIdx + 1}`}
+                    className="w-full h-full object-contain"
+                  />
+                  <span className="absolute top-1.5 left-1.5 px-1.5 py-0.5 bg-black/80 rounded text-[9px] font-mono text-neutral-300">
+                    #{gIdx + 1}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveGalleryImage(gIdx)}
+                    className="absolute top-1.5 right-1.5 p-1 bg-red-950/80 hover:bg-red-600 text-red-200 hover:text-white rounded transition shadow-md opacity-80 group-hover:opacity-100"
+                    title="Remove angle"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="py-4 border border-dashed border-neutral-800/80 rounded-lg text-center text-neutral-500 text-xs">
+              No extra angle images yet. Default card image will be displayed on frontend.
+            </div>
           )}
         </div>
 

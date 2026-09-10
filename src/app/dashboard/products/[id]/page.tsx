@@ -41,6 +41,7 @@ export default async function EditProductPage({ params }: EditProductPageProps) 
     card_badge: product.card_badge || '',
     card_description: product.card_description || '',
     card_image_url: product.card_image_url || '',
+    gallery_images: Array.isArray(product.gallery_images) ? product.gallery_images : [],
     card_specs: Array.isArray(product.card_specs) ? product.card_specs : [],
     modal_title: product.modal_title || '',
     modal_tagline: product.modal_tagline || '',
