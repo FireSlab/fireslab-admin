@@ -46,7 +46,7 @@ export default function SiteSettingsPage() {
       'Leading manufacturer of pressurized hot water storage tanks, modular panel tanks, and advanced thermal engineering solutions across India and international markets.',
     vision_text:
       'To be the benchmark for thermal engineering excellence, delivering unyielding efficiency and safety for heavy industrial and commercial applications.',
-    projects_coming_soon: true,
+    projects_coming_soon: false,
   });
 
   const [loading, setLoading] = useState(true);
@@ -74,7 +74,7 @@ export default function SiteSettingsPage() {
           linkedin_url: data.data.linkedin_url || '',
           about_summary: data.data.about_summary || '',
           vision_text: data.data.vision_text || '',
-          projects_coming_soon: data.data.projects_coming_soon !== undefined ? data.data.projects_coming_soon : true,
+          projects_coming_soon: data.data.projects_coming_soon !== undefined ? data.data.projects_coming_soon : false,
           updated_at: data.data.updated_at,
         });
       }
