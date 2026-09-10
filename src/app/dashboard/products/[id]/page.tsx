@@ -49,6 +49,7 @@ export default async function EditProductPage({ params }: EditProductPageProps) 
     materials: Array.isArray(product.materials) ? product.materials : [],
     capacities: Array.isArray(product.capacities) ? product.capacities : [],
     technical_specs: Array.isArray(product.technical_specs) ? product.technical_specs : [],
+    applications: Array.isArray(product.applications) ? product.applications : [],
     faqs: Array.isArray(product.faqs) ? product.faqs : [],
     cta_text: product.cta_text || '',
     is_published: product.is_published ?? true,

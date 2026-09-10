@@ -29,6 +29,7 @@ interface SiteSettingsData {
   linkedin_url: string;
   about_summary: string;
   vision_text: string;
+  projects_coming_soon?: boolean;
   updated_at?: string;
 }
 
@@ -45,6 +46,7 @@ export default function SiteSettingsPage() {
       'Leading manufacturer of pressurized hot water storage tanks, modular panel tanks, and advanced thermal engineering solutions across India and international markets.',
     vision_text:
       'To be the benchmark for thermal engineering excellence, delivering unyielding efficiency and safety for heavy industrial and commercial applications.',
+    projects_coming_soon: true,
   });
 
   const [loading, setLoading] = useState(true);
@@ -72,6 +74,7 @@ export default function SiteSettingsPage() {
           linkedin_url: data.data.linkedin_url || '',
           about_summary: data.data.about_summary || '',
           vision_text: data.data.vision_text || '',
+          projects_coming_soon: data.data.projects_coming_soon !== undefined ? data.data.projects_coming_soon : true,
           updated_at: data.data.updated_at,
         });
       }
@@ -388,6 +391,48 @@ export default function SiteSettingsPage() {
                   className="w-full bg-neutral-950 border border-neutral-800 rounded-xl p-4 text-sm text-white focus:outline-none focus:border-amber-500 transition-colors resize-none"
                 />
               </div>
+            </div>
+          </div>
+
+          {/* 4. Website Display & Projects Controls */}
+          <div className="bg-neutral-900/40 border border-neutral-800/80 rounded-2xl p-6 backdrop-blur-sm space-y-5">
+            <div className="flex items-center gap-2.5 pb-4 border-b border-neutral-800/80">
+              <Globe className="w-5 h-5 text-amber-500" />
+              <h2 className="text-base font-bold text-white">Projects Page Display Mode</h2>
+            </div>
+
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl bg-neutral-950/60 border border-neutral-800">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-semibold text-white">
+                    Show &quot;Projects Under Documentation / Coming Soon&quot;
+                  </span>
+                  <span
+                    className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded ${
+                      formData.projects_coming_soon
+                        ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                        : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                    }`}
+                  >
+                    {formData.projects_coming_soon ? 'Coming Soon Mode' : 'Live Projects Mode'}
+                  </span>
+                </div>
+                <p className="text-xs text-neutral-400 mt-1 max-w-xl">
+                  Enable this to show an engineered &quot;Reference Projects Dossier Under Client Documentation&quot; placeholder on the website until real site installation photos are uploaded.
+                </p>
+              </div>
+
+              <label className="relative inline-flex items-center cursor-pointer shrink-0">
+                <input
+                  type="checkbox"
+                  checked={Boolean(formData.projects_coming_soon)}
+                  onChange={(e) =>
+                    setFormData((p) => ({ ...p, projects_coming_soon: e.target.checked }))
+                  }
+                  className="sr-only peer"
+                />
+                <div className="w-12 h-6 bg-neutral-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
+              </label>
             </div>
           </div>
 

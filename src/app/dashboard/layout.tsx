@@ -22,7 +22,6 @@ const navigation = [
   { name: 'Overview', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Products', href: '/dashboard/products', icon: Package },
   { name: 'Projects', href: '/dashboard/projects', icon: Briefcase },
-  { name: 'Solutions', href: '/dashboard/solutions', icon: Flame },
   { name: 'Categories', href: '/dashboard/categories', icon: Tags },
   { name: 'Applications', href: '/dashboard/applications', icon: Layers },
   { name: 'Hero Slides', href: '/dashboard/hero-slides', icon: Presentation },
@@ -106,28 +105,15 @@ export default async function DashboardLayout({
           })}
         </nav>
 
-        {/* System & Backend Status Pill */}
-        <div className="p-3 border-t border-neutral-800/80">
-          <div className="p-3 rounded-lg bg-neutral-900/60 border border-neutral-800/80 space-y-2">
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-neutral-400 flex items-center gap-1.5">
-                <Server className="w-3.5 h-3.5 text-emerald-400" />
-                Backend API
-              </span>
-              <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-950/80 text-emerald-400 border border-emerald-800/60">
-                Port 5000
-              </span>
-            </div>
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-neutral-400 flex items-center gap-1.5">
-                <ShieldCheck className="w-3.5 h-3.5 text-[#2d6a35]" />
-                Auth Token
-              </span>
-              <span className="text-[10px] text-neutral-500 font-mono">
-                httpOnly
-              </span>
-            </div>
+        {/* Corporate Footer */}
+        <div className="p-4 border-t border-neutral-800/80">
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-neutral-400 font-medium">FireSlab CMS</span>
+            <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-[#2d6a35]/20 text-emerald-400 border border-[#2d6a35]/40">
+              Active
+            </span>
           </div>
+          <p className="text-[10px] text-neutral-500 mt-1">Industrial Thermal Engineering</p>
         </div>
       </aside>
 

@@ -54,12 +54,11 @@ export default async function DashboardPage() {
   const stats = await fetchStats(token);
 
   const statCards = [
-    { name: 'Products', count: stats.products, href: '/dashboard/products', icon: Package, color: 'from-emerald-900/30 to-emerald-950/10', border: 'border-emerald-800/40', text: 'text-emerald-400' },
-    { name: 'Projects', count: stats.projects, href: '/dashboard/projects', icon: Briefcase, color: 'from-blue-900/30 to-blue-950/10', border: 'border-blue-800/40', text: 'text-blue-400' },
-    { name: 'Solutions', count: stats.solutions, href: '/dashboard/solutions', icon: Flame, color: 'from-amber-900/30 to-amber-950/10', border: 'border-amber-800/40', text: 'text-[#e07b2a]' },
+    { name: 'Products Catalogue', count: stats.products, href: '/dashboard/products', icon: Package, color: 'from-emerald-900/30 to-emerald-950/10', border: 'border-emerald-800/40', text: 'text-emerald-400' },
+    { name: 'Reference Projects', count: stats.projects, href: '/dashboard/projects', icon: Briefcase, color: 'from-blue-900/30 to-blue-950/10', border: 'border-blue-800/40', text: 'text-blue-400' },
     { name: 'Categories', count: stats.categories, href: '/dashboard/categories', icon: Tags, color: 'from-purple-900/30 to-purple-950/10', border: 'border-purple-800/40', text: 'text-purple-400' },
-    { name: 'Applications', count: 6, href: '/dashboard/applications', icon: Layers, color: 'from-cyan-900/30 to-cyan-950/10', border: 'border-cyan-800/40', text: 'text-cyan-400' },
-    { name: 'Customer Inquiries', count: stats.leads, href: '/dashboard/leads', icon: Inbox, color: 'from-rose-900/30 to-rose-950/10', border: 'border-rose-800/40', text: 'text-rose-400' },
+    { name: 'Applications & Sectors', count: 6, href: '/dashboard/applications', icon: Layers, color: 'from-cyan-900/30 to-cyan-950/10', border: 'border-cyan-800/40', text: 'text-cyan-400' },
+    { name: 'Customer Inquiries & Leads', count: stats.leads, href: '/dashboard/leads', icon: Inbox, color: 'from-rose-900/30 to-rose-950/10', border: 'border-rose-800/40', text: 'text-rose-400' },
   ];
 
   return (
@@ -67,23 +66,23 @@ export default async function DashboardPage() {
       {/* Welcome Banner */}
       <div className="rounded-2xl p-6 bg-gradient-to-r from-[#141b17] to-[#0f1412] border border-neutral-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <span className="text-[11px] font-semibold uppercase tracking-wider text-[#e07b2a]">System Dashboard</span>
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-[#e07b2a]">Content Management Portal</span>
           <h1 className="text-2xl font-bold text-white mt-1">Welcome to FireSlab CMS</h1>
           <p className="text-sm text-neutral-400 mt-1">
             Manage your industrial equipment catalogue, project case studies, and customer inquiries.
           </p>
         </div>
 
-        <div className="flex items-center gap-2 self-start sm:self-auto px-3 py-1.5 rounded-full bg-emerald-950/60 border border-emerald-800/50 text-emerald-400 text-xs font-medium">
+        <div className="flex items-center gap-2 self-start sm:self-auto px-3.5 py-1.5 rounded-full bg-emerald-950/60 border border-emerald-800/50 text-emerald-400 text-xs font-medium">
           <CheckCircle2 className="w-3.5 h-3.5" />
-          <span>Backend Connected (Port 5000)</span>
+          <span>System Operational</span>
         </div>
       </div>
 
       {/* Grid of Content Stats */}
       <div>
         <h2 className="text-xs font-semibold uppercase tracking-wider text-neutral-500 mb-4">
-          Live Repository Data
+          Active Modules &amp; Records
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {statCards.map((c) => {
@@ -116,28 +115,34 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      {/* Architecture & Infrastructure Status */}
+      {/* Quick Navigation Panel */}
       <div className="rounded-xl bg-[#0f1412] border border-neutral-800/80 p-6 space-y-4">
         <h3 className="text-xs font-semibold uppercase tracking-wider text-neutral-400 flex items-center gap-2">
           <Database className="w-4 h-4 text-[#2d6a35]" />
-          Connected Architecture
+          Quick Management Shortcuts
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
-          <div className="p-3.5 rounded-lg bg-neutral-900/80 border border-neutral-800/80">
-            <div className="text-neutral-500 uppercase tracking-wider text-[10px]">Database Engine</div>
-            <div className="font-semibold text-white mt-1">Supabase Postgres 15</div>
-            <div className="text-emerald-400 text-[10px] mt-0.5">● 12 Tables Active + RLS</div>
-          </div>
-          <div className="p-3.5 rounded-lg bg-neutral-900/80 border border-neutral-800/80">
-            <div className="text-neutral-500 uppercase tracking-wider text-[10px]">API Server</div>
-            <div className="font-semibold text-white mt-1">Node/Express API</div>
-            <div className="text-emerald-400 text-[10px] mt-0.5">● Service Role Mediated</div>
-          </div>
-          <div className="p-3.5 rounded-lg bg-neutral-900/80 border border-neutral-800/80">
-            <div className="text-neutral-500 uppercase tracking-wider text-[10px]">Session Security</div>
-            <div className="font-semibold text-white mt-1">HTTP-Only Cookies</div>
-            <div className="text-emerald-400 text-[10px] mt-0.5">● XSS Protected JWT</div>
-          </div>
+          <Link
+            href="/dashboard/products"
+            className="p-3.5 rounded-lg bg-neutral-900/80 border border-neutral-800/80 hover:border-neutral-700 transition block"
+          >
+            <div className="font-semibold text-white">Products Catalogue</div>
+            <div className="text-neutral-400 text-[11px] mt-1">Add or update equipment specifications, materials, and sizing</div>
+          </Link>
+          <Link
+            href="/dashboard/projects"
+            className="p-3.5 rounded-lg bg-neutral-900/80 border border-neutral-800/80 hover:border-neutral-700 transition block"
+          >
+            <div className="font-semibold text-white">Reference Projects</div>
+            <div className="text-neutral-400 text-[11px] mt-1">Manage field installations, client case studies, and categories</div>
+          </Link>
+          <Link
+            href="/dashboard/settings"
+            className="p-3.5 rounded-lg bg-neutral-900/80 border border-neutral-800/80 hover:border-neutral-700 transition block"
+          >
+            <div className="font-semibold text-white">Site Settings &amp; Display</div>
+            <div className="text-neutral-400 text-[11px] mt-1">Corporate contact details, socials, and projects display mode toggle</div>
+          </Link>
         </div>
       </div>
     </div>

@@ -552,9 +552,6 @@ export default function SolutionForm({ initialData, isEdit = false }: SolutionFo
           {errors.description && (
             <p className="text-xs text-red-400 mt-1.5">{errors.description}</p>
           )}
-          <p className="text-[11px] text-neutral-500 mt-1.5">
-            Rich text narrative detailing the engineering architecture and thermal advantages. Output is sanitized via DOMPurify.
-          </p>
         </div>
       </div>
 

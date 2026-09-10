@@ -27,7 +27,13 @@ export interface Category {
 
 export interface KeyValueSpec {
   label: string;
+  param?: string;
   value: string;
+}
+
+export interface FeatureItem {
+  title: string;
+  desc: string;
 }
 
 export interface FAQItem {
@@ -47,10 +53,11 @@ export interface ProductFormData {
   modal_title: string;
   modal_tagline: string;
   modal_description: string;
-  features: string[];
+  features: FeatureItem[];
   materials: string[];
   capacities: string[];
   technical_specs: KeyValueSpec[];
+  applications: string[];
   faqs: FAQItem[];
   cta_text: string;
   is_published: boolean;
@@ -58,8 +65,64 @@ export interface ProductFormData {
 }
 
 interface ProductFormProps {
-  initialData?: ProductFormData;
+  initialData?: any;
   isEdit?: boolean;
+}
+
+// Helper normalizers to prevent [object Object] rendering
+function normalizeStringArray(arr: any): string[] {
+  if (!Array.isArray(arr)) return [];
+  return arr.map((item) => {
+    if (typeof item === 'string') return item;
+    if (item && typeof item === 'object') {
+      return item.name || item.title || item.label || item.value || item.desc || '';
+    }
+    return String(item || '');
+  }).filter(Boolean);
+}
+
+function normalizeFeatures(arr: any): FeatureItem[] {
+  if (!Array.isArray(arr)) return [];
+  return arr.map((item) => {
+    if (typeof item === 'string') {
+      return { title: item, desc: '' };
+    }
+    if (item && typeof item === 'object') {
+      return {
+        title: item.title || item.name || item.label || item.heading || '',
+        desc: item.desc || item.description || item.detail || '',
+      };
+    }
+    return { title: '', desc: '' };
+  }).filter((f) => f.title.trim() || f.desc.trim());
+}
+
+function normalizeSpecs(arr: any): KeyValueSpec[] {
+  if (!Array.isArray(arr)) return [];
+  return arr.map((item) => {
+    if (typeof item === 'string') {
+      return { label: item, param: item, value: '' };
+    }
+    if (item && typeof item === 'object') {
+      const lbl = item.param || item.parameter || item.label || item.key || item.name || '';
+      const val = item.value || item.spec || item.val || '';
+      return { label: lbl, param: lbl, value: String(val || '') };
+    }
+    return { label: '', param: '', value: '' };
+  });
+}
+
+function normalizeFaqs(arr: any): FAQItem[] {
+  if (!Array.isArray(arr)) return [];
+  return arr.map((item) => {
+    if (item && typeof item === 'object') {
+      return {
+        q: item.q || item.question || '',
+        a: item.a || item.answer || '',
+      };
+    }
+    return { q: '', a: '' };
+  }).filter((f) => f.q.trim() || f.a.trim());
 }
 
 export default function ProductForm({ initialData, isEdit = false }: ProductFormProps) {
@@ -73,24 +136,29 @@ export default function ProductForm({ initialData, isEdit = false }: ProductForm
     card_badge: initialData?.card_badge || '',
     card_description: initialData?.card_description || '',
     card_image_url: initialData?.card_image_url || '',
-    card_specs: initialData?.card_specs || [
-      { label: 'Capacity', value: '500L – 10,000L' },
-      { label: 'Material', value: 'Duplex 2205 / SS316L' },
+    card_specs: initialData?.card_specs ? normalizeSpecs(initialData.card_specs) : [
+      { label: 'Capacity', param: 'Capacity', value: '500L – 10,000L' },
+      { label: 'Material', param: 'Material', value: 'Duplex 2205 / SS316L' },
     ],
     modal_title: initialData?.modal_title || '',
     modal_tagline: initialData?.modal_tagline || '',
     modal_description: initialData?.modal_description || '',
-    features: initialData?.features || [
-      'High thermal retention insulation jacket',
-      'Dual immersion heating element compatible',
+    features: initialData?.features ? normalizeFeatures(initialData.features) : [
+      { title: 'High Thermal Retention', desc: 'Polyurethane insulation jacket with low standby heat loss.' },
+      { title: 'Dual Immersion Heating', desc: 'Backup immersion ports engineered for peak demand cycles.' },
     ],
-    materials: initialData?.materials || ['Duplex Stainless Steel 2205', 'AISI 316L'],
-    capacities: initialData?.capacities || ['500L', '1,000L', '2,500L', '5,000L', '10,000L'],
-    technical_specs: initialData?.technical_specs || [
-      { label: 'Operating Pressure', value: 'Up to 10 Bar (1.0 MPa)' },
-      { label: 'Test Pressure', value: '15 Bar (1.5 MPa)' },
+    materials: initialData?.materials ? normalizeStringArray(initialData.materials) : ['Duplex Stainless Steel 2205', 'AISI 316L'],
+    capacities: initialData?.capacities ? normalizeStringArray(initialData.capacities) : ['500L', '1,000L', '2,500L', '5,000L', '10,000L'],
+    technical_specs: initialData?.technical_specs ? normalizeSpecs(initialData.technical_specs) : [
+      { label: 'Operating Pressure', param: 'Operating Pressure', value: 'Up to 10 Bar (1.0 MPa)' },
+      { label: 'Test Pressure', param: 'Test Pressure', value: '15 Bar (1.5 MPa)' },
     ],
-    faqs: initialData?.faqs || [
+    applications: initialData?.applications ? normalizeStringArray(initialData.applications) : [
+      'Hotels, Resorts & Luxury Hospitality',
+      'Hospitals & Healthcare Facilities',
+      'Industrial Process Heating & Washdown',
+    ],
+    faqs: initialData?.faqs ? normalizeFaqs(initialData.faqs) : [
       {
         q: 'What is the standard warranty period?',
         a: 'FireSlab provides a comprehensive 5-year structural warranty on all industrial vessels.',
@@ -259,7 +327,7 @@ export default function ProductForm({ initialData, isEdit = false }: ProductForm
   };
 
   // Structured Array Helpers
-  const handleAddStringItem = (field: 'features' | 'materials' | 'capacities') => {
+  const handleAddStringItem = (field: 'materials' | 'capacities' | 'applications') => {
     setFormData((prev) => ({
       ...prev,
       [field]: [...prev[field], ''],
@@ -267,7 +335,7 @@ export default function ProductForm({ initialData, isEdit = false }: ProductForm
   };
 
   const handleUpdateStringItem = (
-    field: 'features' | 'materials' | 'capacities',
+    field: 'materials' | 'capacities' | 'applications',
     index: number,
     value: string
   ) => {
@@ -279,7 +347,7 @@ export default function ProductForm({ initialData, isEdit = false }: ProductForm
   };
 
   const handleRemoveStringItem = (
-    field: 'features' | 'materials' | 'capacities',
+    field: 'materials' | 'capacities' | 'applications',
     index: number
   ) => {
     setFormData((prev) => ({
@@ -288,11 +356,34 @@ export default function ProductForm({ initialData, isEdit = false }: ProductForm
     }));
   };
 
+  // Feature Helpers ({ title, desc })
+  const handleAddFeature = () => {
+    setFormData((prev) => ({
+      ...prev,
+      features: [...prev.features, { title: '', desc: '' }],
+    }));
+  };
+
+  const handleUpdateFeature = (index: number, key: 'title' | 'desc', val: string) => {
+    setFormData((prev) => {
+      const list = [...prev.features];
+      list[index] = { ...list[index], [key]: val };
+      return { ...prev, features: list };
+    });
+  };
+
+  const handleRemoveFeature = (index: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      features: prev.features.filter((_, i) => i !== index),
+    }));
+  };
+
   // Key-Value Helpers (card_specs, technical_specs)
   const handleAddKvSpec = (field: 'card_specs' | 'technical_specs') => {
     setFormData((prev) => ({
       ...prev,
-      [field]: [...prev[field], { label: '', value: '' }],
+      [field]: [...prev[field], { label: '', param: '', value: '' }],
     }));
   };
 
@@ -304,7 +395,11 @@ export default function ProductForm({ initialData, isEdit = false }: ProductForm
   ) => {
     setFormData((prev) => {
       const list = [...prev[field]];
-      list[index] = { ...list[index], [key]: val };
+      const updated = { ...list[index], [key]: val };
+      if (key === 'label') {
+        updated.param = val;
+      }
+      list[index] = updated;
       return { ...prev, [field]: list };
     });
   };
@@ -384,14 +479,29 @@ export default function ProductForm({ initialData, isEdit = false }: ProductForm
     setSubmitting(true);
 
     try {
-      // Clean empty specs
+      // Clean empty specs and normalize payload
       const cleanPayload = {
         ...formData,
-        card_specs: formData.card_specs.filter((s) => s.label.trim() && s.value.trim()),
-        features: formData.features.filter((f) => f.trim()),
-        materials: formData.materials.filter((m) => m.trim()),
-        capacities: formData.capacities.filter((c) => c.trim()),
-        technical_specs: formData.technical_specs.filter((s) => s.label.trim() && s.value.trim()),
+        card_specs: formData.card_specs
+          .map((s) => ({
+            label: (s.label || s.param || '').trim(),
+            param: (s.param || s.label || '').trim(),
+            value: s.value.trim(),
+          }))
+          .filter((s) => s.label && s.value),
+        features: formData.features
+          .map((f) => ({ title: f.title.trim(), desc: f.desc.trim() }))
+          .filter((f) => f.title || f.desc),
+        materials: formData.materials.map((m) => m.trim()).filter(Boolean),
+        capacities: formData.capacities.map((c) => c.trim()).filter(Boolean),
+        applications: formData.applications.map((a) => a.trim()).filter(Boolean),
+        technical_specs: formData.technical_specs
+          .map((s) => ({
+            param: (s.param || s.label || '').trim(),
+            label: (s.label || s.param || '').trim(),
+            value: s.value.trim(),
+          }))
+          .filter((s) => (s.param || s.label) && s.value),
         faqs: formData.faqs.filter((faq) => faq.q.trim() && faq.a.trim()),
       };
 
@@ -837,9 +947,6 @@ export default function ProductForm({ initialData, isEdit = false }: ProductForm
           {errors.modal_description && (
             <p className="text-xs text-red-400 mt-1.5">{errors.modal_description}</p>
           )}
-          <p className="text-[11px] text-neutral-500 mt-1.5">
-            Output HTML is automatically sanitized via DOMPurify to strip any malicious script tags.
-          </p>
         </div>
 
         {/* CTA Text */}
@@ -857,42 +964,104 @@ export default function ProductForm({ initialData, isEdit = false }: ProductForm
         </div>
       </div>
 
-      {/* 3. Structured Builders: Features, Materials, Capacities, Tech Specs */}
+      {/* 3. Structured Builders: Features, Materials, Capacities, Tech Specs, Applications */}
       <div className="p-6 rounded-xl bg-[#0f1412] border border-neutral-800/80 space-y-6">
         <div className="flex items-center gap-2 pb-4 border-b border-neutral-800/60">
           <Layers className="w-4 h-4 text-emerald-400" />
           <h2 className="text-sm font-semibold text-white tracking-wide uppercase">
-            Structured Specifications &amp; Lists
+            Product Specifications &amp; Details
           </h2>
         </div>
 
-        {/* Features List */}
+        {/* Features List ({ title, desc }) */}
         <div>
           <div className="flex items-center justify-between mb-3">
-            <label className="text-xs font-medium text-neutral-300 uppercase tracking-wider">
-              Key Features Bullet Points
-            </label>
+            <div>
+              <label className="text-xs font-medium text-neutral-300 uppercase tracking-wider block">
+                Key Features (Displayed in Customer Modal)
+              </label>
+              <span className="text-[11px] text-neutral-500">Add key technical feature highlights with title and description</span>
+            </div>
             <button
               type="button"
-              onClick={() => handleAddStringItem('features')}
-              className="text-xs text-emerald-400 hover:text-emerald-300 flex items-center gap-1"
+              onClick={handleAddFeature}
+              className="text-xs text-emerald-400 hover:text-emerald-300 flex items-center gap-1 font-medium"
             >
               <Plus className="w-3.5 h-3.5" /> Add Feature
             </button>
           </div>
-          <div className="space-y-2">
+          <div className="space-y-3">
             {formData.features.map((feat, idx) => (
+              <div key={idx} className="p-3 bg-neutral-900/60 border border-neutral-800/80 rounded-lg space-y-2">
+                <div className="flex items-center justify-between gap-3">
+                  <input
+                    type="text"
+                    value={feat.title}
+                    onChange={(e) => handleUpdateFeature(idx, 'title', e.target.value)}
+                    placeholder="Feature Title (e.g. High Thermal Retention)"
+                    className="flex-1 px-3 py-1.5 bg-neutral-950 border border-neutral-800 rounded text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-[#2d6a35]"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveFeature(idx)}
+                    className="p-1.5 text-neutral-500 hover:text-red-400 transition"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+                <input
+                  type="text"
+                  value={feat.desc}
+                  onChange={(e) => handleUpdateFeature(idx, 'desc', e.target.value)}
+                  placeholder="Feature Description (e.g. Polyurethane insulation jacket with low standby heat loss)"
+                  className="w-full px-3 py-1.5 bg-neutral-950 border border-neutral-800 rounded text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-[#2d6a35]"
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Technical Specs Table */}
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <label className="text-xs font-medium text-neutral-300 uppercase tracking-wider block">
+                Technical Specifications Table
+              </label>
+              <span className="text-[11px] text-neutral-500">Parameter and value rows rendered in the customer modal table</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => handleAddKvSpec('technical_specs')}
+              className="text-xs text-emerald-400 hover:text-emerald-300 flex items-center gap-1 font-medium"
+            >
+              <Plus className="w-3.5 h-3.5" /> Add Spec Row
+            </button>
+          </div>
+          <div className="space-y-2">
+            {formData.technical_specs.map((spec, idx) => (
               <div key={idx} className="flex items-center gap-3">
                 <input
                   type="text"
-                  value={feat}
-                  onChange={(e) => handleUpdateStringItem('features', idx, e.target.value)}
-                  placeholder="e.g. Double-pass heat transfer circuit for rapid recovery"
-                  className="flex-1 px-3 py-1.5 bg-neutral-900/80 border border-neutral-800 rounded-lg text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-[#2d6a35]"
+                  placeholder="Parameter (e.g. Design Pressure)"
+                  value={spec.label || spec.param || ''}
+                  onChange={(e) =>
+                    handleUpdateKvSpec('technical_specs', idx, 'label', e.target.value)
+                  }
+                  className="w-1/2 px-3 py-1.5 bg-neutral-900/80 border border-neutral-800 rounded-lg text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-[#2d6a35]"
+                />
+                <input
+                  type="text"
+                  placeholder="Specification (e.g. 10 Bar / 1.0 MPa)"
+                  value={spec.value || ''}
+                  onChange={(e) =>
+                    handleUpdateKvSpec('technical_specs', idx, 'value', e.target.value)
+                  }
+                  className="w-1/2 px-3 py-1.5 bg-neutral-900/80 border border-neutral-800 rounded-lg text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-[#2d6a35]"
                 />
                 <button
                   type="button"
-                  onClick={() => handleRemoveStringItem('features', idx)}
+                  onClick={() => handleRemoveKvSpec('technical_specs', idx)}
                   className="p-2 text-neutral-500 hover:text-red-400 transition"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
@@ -902,18 +1071,57 @@ export default function ProductForm({ initialData, isEdit = false }: ProductForm
           </div>
         </div>
 
+        {/* Applications / Suitable Sectors */}
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <label className="text-xs font-medium text-neutral-300 uppercase tracking-wider block">
+                Applications &amp; Suitable Sectors
+              </label>
+              <span className="text-[11px] text-neutral-500">Checklist items for target commercial and industrial use-cases</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => handleAddStringItem('applications')}
+              className="text-xs text-emerald-400 hover:text-emerald-300 flex items-center gap-1 font-medium"
+            >
+              <Plus className="w-3.5 h-3.5" /> Add Application
+            </button>
+          </div>
+          <div className="space-y-2">
+            {formData.applications.map((app, idx) => (
+              <div key={idx} className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={app}
+                  onChange={(e) => handleUpdateStringItem('applications', idx, e.target.value)}
+                  placeholder="e.g. Hotels, Resorts & Commercial HVAC"
+                  className="flex-1 px-3 py-1.5 bg-neutral-900/80 border border-neutral-800 rounded-lg text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-[#2d6a35]"
+                />
+                <button
+                  type="button"
+                  onClick={() => handleRemoveStringItem('applications', idx)}
+                  className="p-1.5 text-neutral-500 hover:text-red-400"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+
         {/* Materials & Capacities Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
           {/* Materials */}
           <div>
             <div className="flex items-center justify-between mb-3">
               <label className="text-xs font-medium text-neutral-300 uppercase tracking-wider">
-                Materials
+                Materials of Construction
               </label>
               <button
                 type="button"
                 onClick={() => handleAddStringItem('materials')}
-                className="text-xs text-emerald-400 hover:text-emerald-300 flex items-center gap-1"
+                className="text-xs text-emerald-400 hover:text-emerald-300 flex items-center gap-1 font-medium"
               >
                 <Plus className="w-3.5 h-3.5" /> Add Material
               </button>
@@ -925,7 +1133,7 @@ export default function ProductForm({ initialData, isEdit = false }: ProductForm
                     type="text"
                     value={mat}
                     onChange={(e) => handleUpdateStringItem('materials', idx, e.target.value)}
-                    placeholder="e.g. Duplex 2205"
+                    placeholder="e.g. Duplex 2205 / SS316L"
                     className="flex-1 px-3 py-1.5 bg-neutral-900/80 border border-neutral-800 rounded-lg text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-[#2d6a35]"
                   />
                   <button
@@ -944,12 +1152,12 @@ export default function ProductForm({ initialData, isEdit = false }: ProductForm
           <div>
             <div className="flex items-center justify-between mb-3">
               <label className="text-xs font-medium text-neutral-300 uppercase tracking-wider">
-                Available Capacities
+                Standard Capacities
               </label>
               <button
                 type="button"
                 onClick={() => handleAddStringItem('capacities')}
-                className="text-xs text-emerald-400 hover:text-emerald-300 flex items-center gap-1"
+                className="text-xs text-emerald-400 hover:text-emerald-300 flex items-center gap-1 font-medium"
               >
                 <Plus className="w-3.5 h-3.5" /> Add Capacity
               </button>

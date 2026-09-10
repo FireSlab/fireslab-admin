@@ -704,9 +704,6 @@ export default function ProjectForm({ initialData, isEdit = false }: ProjectForm
           {errors.description && (
             <p className="text-xs text-red-400 mt-1.5">{errors.description}</p>
           )}
-          <p className="text-[11px] text-neutral-500 mt-1.5">
-            Document challenge, engineering solution, and measured thermal performance results. Output HTML is sanitized automatically via DOMPurify.
-          </p>
         </div>
       </div>
 
