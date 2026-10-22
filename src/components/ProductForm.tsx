@@ -16,6 +16,8 @@ import {
   HelpCircle,
   FileText,
   Sliders,
+  Search,
+  Globe,
 } from 'lucide-react';
 import TipTapEditor from './TipTapEditor';
 
@@ -61,6 +63,10 @@ export interface ProductFormData {
   applications: string[];
   faqs: FAQItem[];
   cta_text: string;
+  // SEO & Search Console Readiness
+  seo_title?: string;
+  seo_description?: string;
+  seo_keywords?: string;
   is_published: boolean;
   order_index: number;
 }
@@ -167,6 +173,9 @@ export default function ProductForm({ initialData, isEdit = false }: ProductForm
       },
     ],
     cta_text: initialData?.cta_text || 'Request Engineering Datasheet',
+    seo_title: initialData?.seo_title || '',
+    seo_description: initialData?.seo_description || '',
+    seo_keywords: initialData?.seo_keywords || '',
     is_published: initialData?.is_published ?? true,
     order_index: initialData?.order_index || 0,
   });
@@ -1450,7 +1459,95 @@ export default function ProductForm({ initialData, isEdit = false }: ProductForm
         </div>
       </div>
 
-      {/* 4. Publishing & Order Index */}
+      {/* 4. Search Engine Optimization (SEO & Meta Tags) */}
+      <div className="p-6 rounded-xl bg-[#0f1412] border border-neutral-800/80 space-y-6">
+        <div className="flex items-center gap-2 pb-4 border-b border-neutral-800/60">
+          <Search className="w-4 h-4 text-[#2d6a35]" />
+          <div>
+            <h2 className="text-sm font-semibold text-white tracking-wide uppercase">
+              Search Engine Optimization (SEO &amp; GSC Readiness)
+            </h2>
+            <p className="text-xs text-neutral-400 mt-0.5">
+              Customize how this product ranks and previews on Google Search and social platforms. Leave blank to auto-generate.
+            </p>
+          </div>
+        </div>
+
+        {/* Live Google Search Snippet Preview */}
+        <div className="p-4 rounded-lg bg-[#141815] border border-neutral-800">
+          <div className="flex items-center gap-2 mb-2 text-[11px] font-mono uppercase tracking-wider text-neutral-400">
+            <Globe className="w-3.5 h-3.5 text-[#2d6a35]" />
+            <span>Google SERP Live Preview</span>
+          </div>
+          <div className="space-y-1 font-sans">
+            <div className="text-xs text-neutral-400 truncate">
+              https://fireslab.com/products/{formData.slug || 'product-slug'}
+            </div>
+            <div className="text-base text-[#8ab4f8] hover:underline font-medium truncate cursor-pointer">
+              {formData.seo_title || (formData.card_title ? `${formData.card_title} | FireSlab Industries` : 'Product Title | FireSlab Industries')}
+            </div>
+            <div className="text-xs text-neutral-300 line-clamp-2 leading-relaxed">
+              {formData.seo_description || formData.card_description || 'High-performance industrial heating and water storage solutions engineered by FireSlab Industries.'}
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          {/* SEO Title */}
+          <div>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="text-xs font-medium text-neutral-300 uppercase tracking-wider">
+                SEO Meta Title
+              </label>
+              <span className={`text-[11px] font-mono ${(formData.seo_title?.length || 0) > 60 ? 'text-amber-400' : 'text-neutral-500'}`}>
+                {formData.seo_title?.length || 0}/60 chars (Recommended: 50-60)
+              </span>
+            </div>
+            <input
+              type="text"
+              placeholder={formData.card_title ? `${formData.card_title} | FireSlab Industries` : 'e.g. Pressurized Hot Water Storage Tanks (SS304/SS316) | FireSlab'}
+              value={formData.seo_title || ''}
+              onChange={(e) => setFormData((prev) => ({ ...prev, seo_title: e.target.value }))}
+              className="w-full px-3.5 py-2.5 bg-neutral-900 border border-neutral-800 rounded-lg text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-[#2d6a35]"
+            />
+          </div>
+
+          {/* SEO Description */}
+          <div>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="text-xs font-medium text-neutral-300 uppercase tracking-wider">
+                SEO Meta Description
+              </label>
+              <span className={`text-[11px] font-mono ${(formData.seo_description?.length || 0) > 160 ? 'text-amber-400' : 'text-neutral-500'}`}>
+                {formData.seo_description?.length || 0}/160 chars (Recommended: 150-160)
+              </span>
+            </div>
+            <textarea
+              rows={3}
+              placeholder={formData.card_description || 'e.g. Discover FireSlab industrial pressurized storage tanks engineered for high thermal retention, solar compatibility, and maximum longevity.'}
+              value={formData.seo_description || ''}
+              onChange={(e) => setFormData((prev) => ({ ...prev, seo_description: e.target.value }))}
+              className="w-full px-3.5 py-2.5 bg-neutral-900 border border-neutral-800 rounded-lg text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-[#2d6a35]"
+            />
+          </div>
+
+          {/* SEO Keywords */}
+          <div>
+            <label className="block text-xs font-medium text-neutral-300 uppercase tracking-wider mb-1.5">
+              Target SEO Keywords <span className="text-[11px] text-neutral-500 lowercase">(comma separated)</span>
+            </label>
+            <input
+              type="text"
+              placeholder="e.g. hot water storage tank, industrial heating, heat pump buffer tank, ss316 tank"
+              value={formData.seo_keywords || ''}
+              onChange={(e) => setFormData((prev) => ({ ...prev, seo_keywords: e.target.value }))}
+              className="w-full px-3.5 py-2.5 bg-neutral-900 border border-neutral-800 rounded-lg text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-[#2d6a35]"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* 5. Publishing & Order Index */}
       <div className="p-6 rounded-xl bg-[#0f1412] border border-neutral-800/80 space-y-6">
         <div className="flex items-center justify-between">
           <div>
